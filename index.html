@@ -4729,7 +4729,7 @@ async function loadCommFeedbackLog() {
   if (!S.connected) return;
   // Commissioner uses service role style — fetch all rows directly
   const r = await fetch(S.url+'/rest/v1/trade_feedback?select=*&order=created_at.desc&limit=100', {
-    headers:{'apikey':S.key,'Authorization':'Bearer '+sbBearer().key,'Accept':'application/json','Accept-Profile':'fantrax'}
+    headers:{'apikey':S.key,'Authorization':'Bearer '+sbBearer(),'Accept':'application/json','Accept-Profile':'fantrax'}
   });
   if (!r.ok) { document.getElementById('commFeedbackBody').innerHTML='<tr><td colspan="8" style="color:#f57373;padding:12px">Error loading feedback log</td></tr>'; return; }
   const rows = await r.json();
