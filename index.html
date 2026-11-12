@@ -1862,6 +1862,7 @@ function goStep(n) { goPanel('panel-'+n); }
 
 // ══ SUPABASE HELPERS ═════════════════════════════════════════
 function sbBase() { return S.url || document.getElementById('sbUrl').value.trim(); }
+function sbBearer() { return S.token || sbKey(); }  // signed out: anon key, so reads still work
 function myTeam() {
   const sel = document.getElementById('myTeamSelect');
   return (sel && sel.value) ? sel.value : (S.myTeam || 'BDE');
@@ -1869,7 +1870,7 @@ function myTeam() {
 function sbKey()  { return S.key  || document.getElementById('sbKey').value.trim(); }
 function sbH(extra) {
   const k = sbKey();
-  const base = {'Content-Type':'application/json', apikey:k, Authorization:'Bearer '+k, 'Prefer':'return=minimal'};
+  const base = {'Content-Type':'application/json', apikey:k, Authorization: 'Bearer '+sbBearer(), 'Prefer':'return=minimal'};
   return Object.assign(base, extra||{});
 }
 function sbU(table, q) { return sbBase()+'/rest/v1/'+table+(q?'?'+q:''); }
@@ -1882,7 +1883,7 @@ const sbGet = (t,q) => {
   const k = sbKey();
   return fetch(sbBase()+'/rest/v1/'+t+(q?'?'+q:''), {
     method:'GET',
-    headers:{apikey:k, Authorization:'Bearer '+k, 'Accept-Profile':'fantrax'}
+    headers:{apikey:k, Authorization:'Bearer '+sbBearer(), 'Accept-Profile':'fantrax'}
   });
 };
 // fantrax-schema PATCH
@@ -1890,7 +1891,7 @@ const sbFantraxPatch = (t,f,p) => {
   const k = sbKey();
   return fetch(sbBase()+'/rest/v1/'+t+(f?'?'+f:''), {
     method:'PATCH',
-    headers:{apikey:k, Authorization:'Bearer '+k, 'Content-Type':'application/json',
+    headers:{apikey:k, Authorization:'Bearer '+sbBearer(), 'Content-Type':'application/json',
              'Content-Profile':'fantrax','Accept-Profile':'fantrax','Prefer':'return=minimal'},
     body: JSON.stringify(p)
   });
@@ -1900,7 +1901,7 @@ const sbFantraxPost = (t,p) => {
   const k = sbKey();
   return fetch(sbBase()+'/rest/v1/'+t, {
     method:'POST',
-    headers:{apikey:k, Authorization:'Bearer '+k, 'Content-Type':'application/json',
+    headers:{apikey:k, Authorization:'Bearer '+sbBearer(), 'Content-Type':'application/json',
              'Content-Profile':'fantrax','Accept-Profile':'fantrax',
              'Prefer':'resolution=merge-duplicates,return=minimal'},
     body: JSON.stringify(p)
@@ -1911,7 +1912,7 @@ function sbFantraxInsert(table, payload) {
   const k = sbKey();
   return fetch(sbBase()+'/rest/v1/'+table, {
     method:'POST',
-    headers:{'Content-Type':'application/json', apikey:k, Authorization:'Bearer '+k,
+    headers:{'Content-Type':'application/json', apikey:k, Authorization:'Bearer '+sbBearer(),
              'Content-Profile':'fantrax', 'Prefer':'resolution=merge-duplicates,return=minimal'},
     body: JSON.stringify(payload)
   });
@@ -1923,7 +1924,7 @@ function sbRpc(fn, args) {
   const k = sbKey();
   return fetch(sbBase()+'/rest/v1/rpc/'+fn, {
     method: 'POST',
-    headers: {'Content-Type':'application/json', apikey:k, Authorization:'Bearer '+k},
+    headers: {'Content-Type':'application/json', apikey:k, Authorization:'Bearer '+sbBearer()},
     body: JSON.stringify(args)
   });
 }
@@ -4728,7 +4729,7 @@ async function loadCommFeedbackLog() {
   if (!S.connected) return;
   // Commissioner uses service role style — fetch all rows directly
   const r = await fetch(S.url+'/rest/v1/trade_feedback?select=*&order=created_at.desc&limit=100', {
-    headers:{'apikey':S.key,'Authorization':'Bearer '+S.key,'Accept':'application/json','Accept-Profile':'fantrax'}
+    headers:{'apikey':S.key,'Authorization':'Bearer '+sbBearer().key,'Accept':'application/json','Accept-Profile':'fantrax'}
   });
   if (!r.ok) { document.getElementById('commFeedbackBody').innerHTML='<tr><td colspan="8" style="color:#f57373;padding:12px">Error loading feedback log</td></tr>'; return; }
   const rows = await r.json();
